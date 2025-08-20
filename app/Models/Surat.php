@@ -9,20 +9,26 @@ class Surat extends Model
 {
     use HasFactory;
 
-    protected $table = 'surats';
     protected $fillable = [
-        'penduduk_id', 'template_id', 'nomor_surat', 'data_json'
+        'penduduk_id',
+        'template_surat_id',
+        'nomor',
+        'tanggal_surat',
+        'fields',
     ];
 
-    // Relasi ke Penduduk
+    protected $casts = [
+        'fields' => 'array',
+        'tanggal_surat' => 'date',
+    ];
+
     public function penduduk()
     {
-        return $this->belongsTo(Penduduk::class, 'penduduk_id');
+        return $this->belongsTo(Penduduk::class);
     }
 
-    // Relasi ke TemplateSurat
     public function template()
     {
-        return $this->belongsTo(TemplateSurat::class, 'template_id');
+        return $this->belongsTo(TemplateSurat::class, 'template_surat_id');
     }
 }

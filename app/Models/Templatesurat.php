@@ -5,18 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Templatesurat extends Model
+class TemplateSurat extends Model
 {
     use HasFactory;
 
-    protected $table = 'templatesurats';
     protected $fillable = [
-        'nama_template', 'isi_template'
+        'nama',
+        'fields',
+        'isi',
     ];
 
-    // Relasi: 1 template bisa dipakai di banyak surat
-    public function surat()
+    protected $casts = [
+        'fields' => 'array', // biar otomatis jadi array saat diambil
+    ];
+
+    public function surats()
     {
-        return $this->hasMany(Surat::class, 'template_id');
+        return $this->hasMany(Surat::class);
     }
 }

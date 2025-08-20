@@ -9,14 +9,15 @@ class Penduduk extends Model
 {
     use HasFactory;
 
-    protected $table = 'penduduks'; // nama tabel di DB
     protected $fillable = [
-        'nik', 'nama', 'alamat', 'tanggal_lahir', 'pekerjaan'
+        'nik',
+        'nama',
+        'alamat',
+        'tanggal_lahir',
     ];
 
-    // Relasi: 1 penduduk bisa punya banyak surat
-    public function surat()
+    public function surats()
     {
-        return $this->hasMany(Surat::class, 'penduduk_id');
+        return $this->hasMany(Surat::class);
     }
 }

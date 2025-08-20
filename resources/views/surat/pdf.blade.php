@@ -5,14 +5,17 @@
     <title>Surat</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; line-height: 1.6; }
-        h3 { text-align: center; }
+        .header { text-align: center; font-weight: bold; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <h3>{{ $surat->template->nama_template }}</h3>
-    <p>Nomor: {{ $surat->nomor_surat }}</p>
-    <p>{!! nl2br($isi) !!}</p>
-    <br><br>
-    <p style="text-align:right;">(...................................)</p>
+    <div class="header">
+        <h2>{{ $surat->template->nama }}</h2>
+        <p>Nomor: {{ $surat->nomor }}</p>
+    </div>
+
+    <div>
+        {!! nl2br($isi) !!}
+    </div>
 </body>
 </html>

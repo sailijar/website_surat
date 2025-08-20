@@ -2,79 +2,66 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Penduduk;
 use App\Models\Surat;
-use App\Models\Templatesurat;
+use App\Models\Penduduk;
+use App\Models\TemplateSurat;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SuratController extends Controller
 {
-    // Tampilkan daftar surat
     public function index()
     {
-        $surats = Surat::with(['penduduk', 'template'])->get();
-        return view('surat.index', compact('surats'));
+        $surat = Surat::with(['penduduk','template'])->latest()->paginate(10);
+        return view('surat.index', compact('surat'));
     }
 
-    // Form buat surat
     public function create()
     {
         $penduduk = Penduduk::all();
-        $template = Templatesurat::all();
-        return view('surat.create', compact('penduduk','template'));
+        $templates = TemplateSurat::all();
+        return view('surat.create', compact('penduduk','templates'));
     }
 
-    // Simpan surat baru
     public function store(Request $request)
     {
         $request->validate([
-            'nomor_surat' => 'required',
-            'penduduk_id' => 'required',
-            'template_surat_id' => 'required',
+            'penduduk_id' => 'required|exists:penduduks,id',
+            'template_surat_id' => 'required|exists:template_surats,id',
+            'nomor' => 'required|string',
+            'tanggal_surat' => 'required|date',
         ]);
 
-        // misalnya nanti ada form tambahan untuk field dinamis
-        $data_json = json_encode($request->except(['nomor_surat','penduduk_id','template_surat_id','_token']));
-
-        Surat::create([
-            'nomor_surat' => $request->nomor_surat,
+        $surat = Surat::create([
             'penduduk_id' => $request->penduduk_id,
             'template_surat_id' => $request->template_surat_id,
-            'tanggal_surat' => now(),
-            'data_json' => $data_json,
+            'nomor' => $request->nomor,
+            'tanggal_surat' => $request->tanggal_surat,
+            'fields' => $request->fields ?? [],
         ]);
 
-        return redirect()->route('surat.index')->with('success','Surat berhasil dibuat');
+        return redirect()->route('surat.show', $surat->id);
     }
 
-    // Preview isi surat
     public function show($id)
     {
-        $surat = Surat::with(['penduduk', 'template'])->findOrFail($id);
+        $surat = Surat::with(['penduduk','template'])->findOrFail($id);
 
-        $isi = $surat->template->isi_template;
+        // Ganti placeholder di template
+        $isi = $surat->template->isi;
+        $isi = str_replace('{{nama}}', $surat->penduduk->nama, $isi);
+        $isi = str_replace('{{nik}}', $surat->penduduk->nik, $isi);
+        $isi = str_replace('{{alamat}}', $surat->penduduk->alamat, $isi);
+        $isi = str_replace('{{nomor}}', $surat->nomor, $isi);
+        $isi = str_replace('{{tanggal}}', date('d-m-Y', strtotime($surat->tanggal_surat)), $isi);
 
-        $data = json_decode($surat->data_json, true);
-        foreach ($data as $key => $value) {
-            $isi = str_replace("{" . $key . "}", $value, $isi);
+        // kalau ada fields dinamis
+        foreach ($surat->fields ?? [] as $key => $value) {
+            $isi = str_replace('{{'.$key.'}}', $value, $isi);
         }
 
-        return view('surat.show', compact('surat', 'isi'));
+        // Buat PDF
+        $pdf = Pdf::loadView('surat.pdf', compact('surat','isi'));
+        return $pdf->download('surat-'.$surat->id.'.pdf');
     }
-
-    // Export ke PDF
-    public function exportPdf($id)
-    {
-        $surat = Surat::with(['penduduk', 'template'])->findOrFail($id);
-
-        $isi = $surat->template->isi_template;
-        $data = json_decode($surat->data_json, true);
-        foreach ($data as $key => $value) {
-            $isi = str_replace("{" . $key . "}", $value, $isi);
-        }
-
-        $pdf = PDF::loadView('surat.pdf', compact('surat', 'isi'));
-        return $pdf->download('surat_' . $surat->nomor_surat . '.pdf');
-    }
-
 }
