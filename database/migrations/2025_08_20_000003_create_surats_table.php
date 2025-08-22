@@ -10,11 +10,9 @@ return new class extends Migration
     {
         Schema::create('surats', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('penduduk_id')->constrained()->onDelete('cascade');
-            $table->foreignId('template_surat_id')->constrained()->onDelete('cascade');
-            $table->string('nomor');
-            $table->date('tanggal_surat');
-            $table->json('fields')->nullable(); // simpan data dinamis dari form
+            $table->foreignId('penduduk_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('surat_template_id')->constrained()->cascadeOnDelete();
+            $table->text('isi'); // surat yang digenerate
             $table->timestamps();
         });
     }

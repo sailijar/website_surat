@@ -10,10 +10,9 @@ return new class extends Migration
     {
         Schema::create('penduduks', function (Blueprint $table) {
             $table->id();
-            $table->string('nik')->unique();
             $table->string('nama');
+            $table->string('nik')->unique();
             $table->string('alamat');
-            $table->date('tanggal_lahir')->nullable();
             $table->timestamps();
         });
     }
